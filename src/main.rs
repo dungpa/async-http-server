@@ -22,7 +22,7 @@ async fn main() {
 async fn handle_connection(mut stream: impl Read + Write + Unpin) {
     // Read the first 1024 bytes of data from the stream
     let mut buffer = [0; 1024];
-    stream.read(&mut buffer);
+    stream.read(&mut buffer).await.unwrap();
 
     let get = b"GET / HTTP/1.1\r\n";
     let sleep = b"GET /sleep HTTP/1.1\r\n";
@@ -44,8 +44,8 @@ async fn handle_connection(mut stream: impl Read + Write + Unpin) {
     // and flush the stream to ensure the response is sent back to the client
     let response = format!("{status_line}{contents}");
     println!("Here 1: {}", response);
-    stream.write_all(response.as_bytes());
-    stream.flush();
+    stream.write_all(response.as_bytes()).await.unwrap();
+    stream.flush().await.unwrap();
     println!("Here 2");
 }
 
