@@ -30,7 +30,6 @@ async fn handle_connection(mut stream: impl Read + Write + Unpin) {
     // Respond with greetings or a 404,
     // depending on the data in the request
     let (status_line, filename) = if buffer.starts_with(get) {
-        println!("Here 1");
         ("HTTP/1.1 200 OK\r\n\r\n", "hello.html")
     } else if buffer.starts_with(sleep) {
         task::sleep(Duration::from_secs(5)).await;
@@ -43,10 +42,8 @@ async fn handle_connection(mut stream: impl Read + Write + Unpin) {
     // Write response back to the stream,
     // and flush the stream to ensure the response is sent back to the client
     let response = format!("{status_line}{contents}");
-    println!("Here 1: {}", response);
     stream.write_all(response.as_bytes()).await.unwrap();
     stream.flush().await.unwrap();
-    println!("Here 2");
 }
 
 #[cfg(test)]
@@ -82,17 +79,14 @@ mod tests {
             buf: &[u8],
         ) -> Poll<Result<usize>> {
             self.write_data = Vec::from(buf);
-            println!("Write");
             Poll::Ready(Ok(buf.len()))
         }
 
         fn poll_flush(self: Pin<&mut Self>, _: &mut Context) -> Poll<Result<()>> {
-            println!("Flush");
             Poll::Ready(Ok(()))
         }
 
         fn poll_close(self: Pin<&mut Self>, _: &mut Context) -> Poll<Result<()>> {
-            println!("Close");
             Poll::Ready(Ok(()))
         }
     }
@@ -113,7 +107,6 @@ mod tests {
 
         let expected_contents = fs::read_to_string("hello.html").unwrap();
         let expected_response = format!("HTTP/1.1 200 OK\r\n\r\n{}", expected_contents);
-        println!("Result:{}", String::from_utf8(stream.write_data.clone()).expect("Converted"));
         assert!(stream.write_data.starts_with(expected_response.as_bytes()));
     }
 
